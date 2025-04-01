@@ -7,13 +7,10 @@
 #include <string.h>
 #include <time.h>
 
-#define TESTS_BASE "base"
+#define BUF_SIZE 1024
 void tests_base(void) {
   // TODO: should probably test the math operations here
 }
-
-#define TESTS_FFT "fft"
-#define BUF_SIZE 1024
 void tests_fft(void) {
   // derived from "Testing Multivariate Linear Functions: Overcoming the
   // Generator Bottleneck" by F. Ergün
@@ -250,8 +247,6 @@ void tests_fft(void) {
   }
   assert(count >= q);
 }
-
-#define TESTS_RFFT "rfft"
 void tests_rfft(void) {
   // same testing methodology as above
   unsigned int m = 20, q = 20, l = 4, count;
@@ -480,8 +475,6 @@ void tests_rfft(void) {
   }
   assert(count >= q);
 }
-
-#define TESTS_FILTER "filter"
 void tests_filter(void) {
   // again the same testing methodology
   unsigned int m = 20, q = 20, l = 4, count;
@@ -791,18 +784,18 @@ void tests_filter(void) {
     count += p;
   }
 }
-
+#define REGTEST(test)                                                          \
+  if (all_tests || !strcmp(#test, argv[1])) {                                  \
+    printf("Running tests for " #test " ...\n");                               \
+    tests_##test();                                                            \
+  }
 int main(int argc, char **argv) {
   srand(time(NULL));
   bool all_tests;
   if ((all_tests = !(argc > 1)))
     printf("Running all tests\n");
-  if (all_tests || !strcmp(TESTS_BASE, argv[1]))
-    printf("Running tests for " TESTS_BASE "...\n"), tests_base();
-  if (all_tests || !strcmp(TESTS_FFT, argv[1]))
-    printf("Running tests for " TESTS_FFT "...\n"), tests_fft();
-  if (all_tests || !strcmp(TESTS_RFFT, argv[1]))
-    printf("Running tests for " TESTS_RFFT "...\n"), tests_rfft();
-  if (all_tests || !strcmp(TESTS_FILTER, argv[1]))
-    printf("Running tests for " TESTS_FILTER "...\n"), tests_filter();
+  REGTEST(base);
+  REGTEST(fft);
+  REGTEST(rfft);
+  REGTEST(filter);
 }
