@@ -5,7 +5,7 @@
 
 typedef struct dsp_filter dsp_filter_t;
 
-dsp_filter_t *dsp_filter_new(size_t n);
+dsp_filter_t *dsp_filter_new(size_t n, size_t c);
 void dsp_filter_del(dsp_filter_t *filter);
 
 void dsp_filter_reset(dsp_filter_t *filter);
@@ -21,6 +21,6 @@ enum dsp_filter_type {
 void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
                      smp_t f0, smp_t Q);
 
-smp_t dsp_filter_smp(dsp_filter_t *filter, smp_t x);
+void dsp_filter_smp(dsp_filter_t *filter, const smp_t *x, smp_t *y);
 
 #endif // !__DSP_FILTER_H__

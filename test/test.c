@@ -495,7 +495,7 @@ void tests_filter(void) {
       z[i] = smp_add(x[i], y[i]);
     }
     size_t n = rand() % 4 + 1;
-    dsp_filter_t *filter = dsp_filter_new(n);
+    dsp_filter_t *filter = dsp_filter_new(n, 1);
     for (size_t i = 0; i < n; i++) {
       enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
       smp_t f0 = smp_rand(smp(0.125), smp(0.375));
@@ -504,13 +504,13 @@ void tests_filter(void) {
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      X[i] = dsp_filter_smp(filter, x[i]);
+      dsp_filter_smp(filter, x + i, X + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Y[i] = dsp_filter_smp(filter, y[i]);
+      dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Z[i] = dsp_filter_smp(filter, z[i]);
+      dsp_filter_smp(filter, z + i, Z + i);
     dsp_filter_del(filter);
     bool p = true;
     for (size_t i = 0; p && i < BUF_SIZE; i++) {
@@ -525,7 +525,7 @@ void tests_filter(void) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     smp_t f0 = smp_rand(smp(0.125), smp(0.375));
     smp_t Q = smp_rand(smp(0.5), smp(1));
-    dsp_filter_t *filter = dsp_filter_new(1);
+    dsp_filter_t *filter = dsp_filter_new(1, 1);
     dsp_filter_init(filter, 0, t, f0, Q);
     smp_t w0 = smp_mul(DSP_2PI, f0), cc = smp_cos(w0), ss = smp_sin(w0);
     bool p = true;
@@ -542,10 +542,10 @@ void tests_filter(void) {
       }
       dsp_filter_reset(filter);
       for (size_t i = 0; i < n; i++)
-        X[i] = dsp_filter_smp(filter, x[i]);
+        dsp_filter_smp(filter, x + i, X + i);
       dsp_filter_reset(filter);
       for (size_t i = 0; i < n; i++)
-        Y[i] = dsp_filter_smp(filter, y[i]);
+        dsp_filter_smp(filter, y + i, Y + i);
       smp_t y1 = smp_add(X[1], Y[1]);
       for (ptrdiff_t i = 1; p && i < n; i++) {
         smp_t c1 = smp_exp(smp_mul(r, smp(i - 1)));
@@ -570,10 +570,10 @@ void tests_filter(void) {
       }
       dsp_filter_reset(filter);
       for (size_t i = 0; i < n; i++)
-        X[i] = dsp_filter_smp(filter, x[i]);
+        dsp_filter_smp(filter, x + i, X + i);
       dsp_filter_reset(filter);
       for (size_t i = 0; i < n; i++)
-        Y[i] = dsp_filter_smp(filter, y[i]);
+        dsp_filter_smp(filter, y + i, Y + i);
       smp_t y1 = smp_add(X[1], Y[1]), y2 = smp_add(X[2], Y[2]);
       for (ptrdiff_t i = 1; p && i < n; i++) {
         smp_t c1 = smp_exp(smp_mul(r, smp(i - 1)));
@@ -597,7 +597,7 @@ void tests_filter(void) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     smp_t f0 = smp_rand(smp(0.125), smp(0.375));
     smp_t Q = smp_rand(smp(0.5), smp(1));
-    dsp_filter_t *filter = dsp_filter_new(1);
+    dsp_filter_t *filter = dsp_filter_new(1, 1);
     dsp_filter_init(filter, 0, t, f0, Q);
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = smp_gauss();
@@ -605,10 +605,10 @@ void tests_filter(void) {
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      X[i] = dsp_filter_smp(filter, x[i]);
+      dsp_filter_smp(filter, x + i, X + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Y[i] = dsp_filter_smp(filter, y[i]);
+      dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_del(filter);
     switch (t) {
     case DSP_FILTER_LP_FO:
@@ -632,7 +632,7 @@ void tests_filter(void) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     smp_t f0 = smp_rand(smp(0.125), smp(0.375));
     smp_t Q = smp_rand(smp(0.5), smp(1));
-    dsp_filter_t *filter = dsp_filter_new(1);
+    dsp_filter_t *filter = dsp_filter_new(1, 1);
     dsp_filter_init(filter, 0, t, f0, Q);
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = smp_gauss();
@@ -640,10 +640,10 @@ void tests_filter(void) {
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      X[i] = dsp_filter_smp(filter, x[i]);
+      dsp_filter_smp(filter, x + i, X + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Y[i] = dsp_filter_smp(filter, y[i]);
+      dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_del(filter);
     switch (t) {
     case DSP_FILTER_LP_FO:
@@ -671,7 +671,7 @@ void tests_filter(void) {
       z[i] = smp_add(x[i], smp_neg(y[i]));
     }
     size_t n = rand() % 4 + 1;
-    dsp_filter_t *filter = dsp_filter_new(n);
+    dsp_filter_t *filter = dsp_filter_new(n, 1);
     for (size_t i = 0; i < n; i++) {
       enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
       smp_t f0 = smp_rand(smp(0.125), smp(0.375));
@@ -680,10 +680,10 @@ void tests_filter(void) {
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Y[i] = dsp_filter_smp(filter, y[i]);
+      dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Z[i] = dsp_filter_smp(filter, z[i]);
+      dsp_filter_smp(filter, z + i, Z + i);
     for (size_t i = 0; i < BUF_SIZE; i++)
       X[i] = smp_add(Y[i], Z[i]);
     for (int _ = 0; _ < l + 1; _++) {
@@ -693,10 +693,10 @@ void tests_filter(void) {
       }
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
-        Y[i] = dsp_filter_smp(filter, y[i]);
+        dsp_filter_smp(filter, y + i, Y + i);
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
-        Z[i] = dsp_filter_smp(filter, z[i]);
+        dsp_filter_smp(filter, z + i, Z + i);
       bool p = true;
       for (size_t i = 0; p && i < BUF_SIZE; i++) {
         smp_t eps = smp_abs(smp_add(X[i], smp_neg(smp_add(Y[i], Z[i]))));
@@ -710,10 +710,10 @@ void tests_filter(void) {
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      Z[i] = dsp_filter_smp(filter, y[i]);
+      dsp_filter_smp(filter, y + i, Z + i);
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
-      W[i] = dsp_filter_smp(filter, z[i]);
+      dsp_filter_smp(filter, z + i, W + i);
     for (size_t i = 0; i < BUF_SIZE; i++)
       Y[i] = smp_add(Z[i], W[i]);
     for (int _ = 0; _ < l + 1; _++) {
@@ -723,10 +723,10 @@ void tests_filter(void) {
       }
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
-        Z[i] = dsp_filter_smp(filter, y[i]);
+        dsp_filter_smp(filter, y + i, Z + i);
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
-        W[i] = dsp_filter_smp(filter, z[i]);
+        dsp_filter_smp(filter, z + i, W + i);
       bool p = true;
       for (size_t i = 0; p && i < BUF_SIZE; i++) {
         smp_t eps = smp_add(Y[i], smp_neg(smp_add(Z[i], W[i])));
@@ -748,9 +748,9 @@ void tests_filter(void) {
     for (size_t i = 0; i < BUF_SIZE; i++)
       x[i] = smp_gauss();
     size_t n1 = rand() % 4 + 1, n2 = rand() % 4 + 1;
-    dsp_filter_t *filter1 = dsp_filter_new(n1);
-    dsp_filter_t *filter2 = dsp_filter_new(n2);
-    dsp_filter_t *filter3 = dsp_filter_new(n1 + n2);
+    dsp_filter_t *filter1 = dsp_filter_new(n1, 1);
+    dsp_filter_t *filter2 = dsp_filter_new(n2, 1);
+    dsp_filter_t *filter3 = dsp_filter_new(n1 + n2, 1);
     for (size_t i = 0; i < n1; i++) {
       enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
       smp_t f0 = smp_rand(smp(0.125), smp(0.375));
@@ -769,9 +769,9 @@ void tests_filter(void) {
     dsp_filter_reset(filter2);
     dsp_filter_reset(filter3);
     for (size_t i = 0; i < BUF_SIZE; i++) {
-      y[i] = dsp_filter_smp(filter1, x[i]);
-      z[i] = dsp_filter_smp(filter2, y[i]);
-      w[i] = dsp_filter_smp(filter3, x[i]);
+      dsp_filter_smp(filter1, x + i, y + i);
+      dsp_filter_smp(filter2, y + i, z + i);
+      dsp_filter_smp(filter3, x + i, w + i);
     }
     dsp_filter_del(filter1);
     dsp_filter_del(filter2);
@@ -781,7 +781,44 @@ void tests_filter(void) {
       smp_t eps = smp_abs(smp_add(w[i], smp_neg(z[i])));
       p = p && smp_cmp(&eps, &e) <= 0;
     }
-    count += p;
+    assert(p);
+  }
+  printf("Testing channels...\n");
+  for (int _ = 0; _ < m; _++) {
+    size_t c = rand() % 3 + 1;
+    for (size_t i = 0; i < BUF_SIZE / c; i++) {
+      x[i] = smp_gauss();
+      for (size_t j = 0; j < c; j++) {
+        y[c * i + j] = smp_gauss();
+        z[c * i + j] = smp_add(x[i], smp_neg(y[c * i + j]));
+      }
+    }
+    size_t n = rand() % 4 + 1;
+    dsp_filter_t *f1 = dsp_filter_new(n, 1), *fc = dsp_filter_new(n, c);
+    for (size_t i = 0; i < n; i++) {
+      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      smp_t f0 = smp_rand(smp(0.125), smp(0.375));
+      smp_t Q = smp_rand(smp(0.5), smp(1));
+      dsp_filter_init(f1, i, t, f0, Q);
+      dsp_filter_init(fc, i, t, f0, Q);
+    }
+    dsp_filter_reset(f1);
+    for (size_t i = 0; i < BUF_SIZE / c; i++)
+      dsp_filter_smp(f1, x + i, X + i);
+    dsp_filter_reset(fc);
+    for (size_t i = 0; i < BUF_SIZE / c; i++)
+      dsp_filter_smp(fc, y + c * i, Y + c * i);
+    dsp_filter_reset(fc);
+    for (size_t i = 0; i < BUF_SIZE / c; i++)
+      dsp_filter_smp(fc, z + c * i, Z + c * i);
+    dsp_filter_del(f1);
+    dsp_filter_del(fc);
+    bool p = true;
+    for (size_t i = 0; p && i < c * (BUF_SIZE / c); i++) {
+      smp_t eps = smp_abs(smp_add(X[i / c], smp_neg(smp_add(Y[i], Z[i]))));
+      p = p && smp_cmp(&eps, &e) <= 0;
+    }
+    assert(p);
   }
 }
 #define REGTEST(test)                                                          \

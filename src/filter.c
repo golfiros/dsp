@@ -4,27 +4,33 @@ struct biquad {
   smp_t a[2], b[3];
 };
 struct dsp_filter {
-  size_t n;
-  smp_t x[2];
+  size_t n, c;
+  smp_t *x;
   struct {
-    smp_t a[2], b[3], y[2];
+    smp_t a[2], b[3];
   } f[];
 };
-struct dsp_filter *dsp_filter_new(size_t n) {
+struct dsp_filter *dsp_filter_new(size_t n, size_t c) {
   struct dsp_filter *filter = malloc(sizeof *filter + n * sizeof *filter->f);
   if (!filter)
     return NULL;
-  *filter = (typeof(*filter)){.n = n};
+  *filter = (typeof(*filter)){.n = n, .c = c};
+  filter->x = malloc(2 * c * (n + 1) * sizeof *filter->x);
+  if (!filter->x) {
+    free(filter);
+    return NULL;
+  }
   return filter;
 }
 void dsp_filter_del(struct dsp_filter *filter) {
-  if (filter)
+  if (filter) {
+    free(filter->x);
     free(filter);
+  }
 }
 void dsp_filter_reset(dsp_filter_t *filter) {
-  for (size_t i = 0; i < filter->n; i++)
-    for (size_t j = 0; j < 2; filter->x[j++] = 0)
-      filter->f[i].y[j] = 0;
+  for (size_t i = 0; i < 2 * filter->c * (filter->n + 1); i++)
+    filter->x[i] = 0;
 }
 void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
                      smp_t f0, smp_t Q) {
@@ -78,22 +84,23 @@ void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
   filter->f[i].b[1] = smp_div(b1, a0);
   filter->f[i].b[2] = smp_div(b2, a0);
 }
-smp_t dsp_filter_smp(dsp_filter_t *filter, smp_t x) {
-  smp_t y = x, *p = filter->x, *a;
-  for (size_t i = 0; i < filter->n; i++) {
-    if (i)
-      p = filter->f[i - 1].y;
-    a = filter->f[i].b;
-    x = y;
-    y = smp_mul(a[0], x);
-    y = smp_fma(a[1], p[0], y);
-    y = smp_fma(a[2], p[1], y);
-    p[1] = p[0], p[0] = x;
-    p = filter->f[i].y;
-    a = filter->f[i].a;
-    y = smp_fma(smp_neg(a[0]), p[0], y);
-    y = smp_fma(smp_neg(a[1]), p[1], y);
+void dsp_filter_smp(dsp_filter_t *filter, const smp_t *x, smp_t *y) {
+  for (size_t j = 0; j < filter->c; j++) {
+    smp_t Y = x[j], *p0, *p1;
+    for (size_t i = 0; i < filter->n; i++) {
+      p0 = filter->x + 2 * filter->c * i + 2 * j, p1 = p0 + 1;
+      smp_t X = Y;
+      const smp_t *a = filter->f[i].b;
+      Y = smp_mul(a[0], X);
+      Y = smp_fma(a[1], *p0, Y);
+      Y = smp_fma(a[2], *p1, Y);
+      *p1 = *p0, *p0 = X;
+      p0 = filter->x + 2 * filter->c * (i + 1) + 2 * j, p1 = p0 + 1;
+      a = filter->f[i].a;
+      Y = smp_fma(smp_neg(a[0]), *p0, Y);
+      Y = smp_fma(smp_neg(a[1]), *p1, Y);
+    }
+    *p1 = *p0, *p0 = Y;
+    y[j] = Y;
   }
-  p[1] = p[0], p[0] = y;
-  return y;
 }
