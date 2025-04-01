@@ -786,7 +786,7 @@ void tests_filter(void) {
 }
 #define REGTEST(test)                                                          \
   if (all_tests || !strcmp(#test, argv[1])) {                                  \
-    printf("Running tests for " #test " ...\n");                               \
+    printf("Running tests for " #test "...\n");                                \
     tests_##test();                                                            \
   }
 int main(int argc, char **argv) {

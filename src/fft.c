@@ -177,7 +177,7 @@ inline void dsp_fft_ifft(const struct dsp_fft *fft, const cpx_t *X, cpx_t *x) {
 
 struct dsp_rfft {
   struct dsp_fft fft;
-  cpx_t *y, *z;
+  cpx_t *y, *z, *w;
 };
 struct dsp_rfft *dsp_rfft_new(size_t N) {
   if (N % 2)
@@ -190,15 +190,19 @@ struct dsp_rfft *dsp_rfft_new(size_t N) {
   fft->fft.w = malloc(N * sizeof *fft->fft.w);
   fft->y = malloc(N * sizeof *fft->y);
   fft->z = malloc(N * sizeof *fft->z);
-  if (!fft->fft.w || !fft->y || !fft->z) {
+  fft->w = malloc(2 * N * sizeof *fft->z);
+  if (!fft->fft.w || !fft->y || !fft->z || !fft->w) {
     free(fft->fft.w);
     free(fft->y);
     free(fft->z);
+    free(fft->w);
     free(fft);
     return NULL;
   }
   for (size_t i = 0; i < N; i++)
     fft->fft.w[i] = _w(i, N);
+  for (size_t i = 0; i < 2 * N; i++)
+    fft->w[i] = _w(i, 4 * N);
 
   for (size_t k = 0; N > 1; k++)
     fft->fft.m[k] = _factor(&N), fft->fft.n[k] = N;
@@ -217,14 +221,14 @@ void dsp_rfft_fft(const struct dsp_rfft *fft, const smp_t *x, cpx_t *X) {
   size_t N = fft->fft.N;
   cpx_t *y = fft->y, *z = fft->z;
   for (size_t n = 0; n < N; n++)
-    y[n] = cpx_mul(cpx(x[2 * n], x[2 * n + 1]), _w(n, 2 * N));
+    y[n] = cpx_mul(cpx(x[2 * n], x[2 * n + 1]), fft->w[2 * n]);
   dsp_fft_fft(&fft->fft, y, z);
   for (size_t k = 0; k < N; k++) {
     size_t l = N - 1 - k;
     cpx_t Xe = cpx_scale(smp(.5), cpx_add(z[k], cpx_conj(z[l])));
     cpx_t Xo = cpx_scale(smp(.5), cpx_add(z[k], cpx_neg(cpx_conj(z[l]))));
     Xo = cpx_mul(cpx(DSP_ZERO, smp(-1)), Xo);
-    X[k] = cpx_add(Xe, cpx_mul(Xo, _w(2 * k + 1, 4 * N)));
+    X[k] = cpx_add(Xe, cpx_mul(Xo, fft->w[2 * k + 1]));
   }
 }
 void dsp_rfft_ifft(const struct dsp_rfft *fft, const cpx_t *X, smp_t *x) {
@@ -235,11 +239,11 @@ void dsp_rfft_ifft(const struct dsp_rfft *fft, const cpx_t *X, smp_t *x) {
     cpx_t Xe = cpx_scale(smp(.25), cpx_add(X[k], cpx_conj(X[l])));
     cpx_t Xo = cpx_scale(smp(.25), cpx_add(X[k], cpx_neg(cpx_conj(X[l]))));
     Xo = cpx_mul(cpx(DSP_ZERO, smp(1)), Xo);
-    z[k] = cpx_add(Xe, cpx_mul(Xo, cpx_conj(_w(2 * k + 1, 4 * N))));
+    z[k] = cpx_add(Xe, cpx_mul(Xo, cpx_conj(fft->w[2 * k + 1])));
   }
   dsp_fft_ifft(&fft->fft, z, y);
   for (size_t n = 0; n < N; n++) {
-    cpx_t z = cpx_mul(y[n], cpx_conj(_w(n, 2 * N)));
+    cpx_t z = cpx_mul(y[n], cpx_conj(fft->w[2 * n]));
     x[2 * n] = z.x, x[2 * n + 1] = z.y;
   }
 }
