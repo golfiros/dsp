@@ -17,15 +17,13 @@ void tests_fft(void) {
   // these tests fail with probability of at least 1 - delta when the
   // implementation is wrong at on a fraction of at least epsilon of inputs
   unsigned int // here we take epslion = 10% and the minimum corresponding delta
-      m = 20,  // log(2 / delta)
-      q = 20,  // log(6 / delta) * (1 - epsilon / 2) + 1 / sqrt(2)
-      l = 4,   // log2(1 / epsilon)
-      count;
+      m = 20,  // log(2 / delta) >= log(6 / delta) * (1 - epsilon / 2) + 1 /
+               // sqrt(2)
+      l = 4;   // log2(1 / epsilon)
   cpx_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   cpx_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing forward FFTs\n");
   printf("Testing linearity...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
@@ -39,15 +37,12 @@ void tests_fft(void) {
     dsp_fft_fft(fft, z, Z);
     smp_t e = smp_eps(dsp_fft_err(fft));
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       cpx_t d = cpx_add(Z[i], cpx_neg(cpx_add(X[i], Y[i])));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing impulse...\n");
   for (int _ = 0; _ < l; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
@@ -60,16 +55,13 @@ void tests_fft(void) {
     dsp_fft_fft(fft, x, X);
     dsp_fft_fft(fft, y, Y);
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       cpx_t d = cpx_add(cpx(smp(1), DSP_ZERO), cpx_neg(cpx_add(X[i], Y[i])));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
   printf("Testing shift...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
@@ -90,13 +82,11 @@ void tests_fft(void) {
       }
       dsp_fft_fft(fft, y, Y);
       dsp_fft_fft(fft, z, Z);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         cpx_t d = cpx_add(X[i], cpx_neg(cpx_add(Y[i], Z[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     for (size_t i = 0; i < n; i++) {
       y[i] = cpx(smp_gauss(), smp_gauss());
@@ -113,29 +103,23 @@ void tests_fft(void) {
       }
       dsp_fft_fft(fft, y, Z);
       dsp_fft_fft(fft, z, W);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         cpx_t d = cpx_add(Y[i], cpx_neg(cpx_add(Z[i], W[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       smp_t t = smp_mul(DSP_2PI, smp_div(smp(i), smp(n)));
       cpx_t w = cpx(smp_cos(t), smp_neg(smp_sin(t)));
       cpx_t d = cpx_add(X[i], cpx_neg(cpx_mul(Y[i], w)));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing inverse FFTs\n");
   printf("Testing linearity...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
@@ -149,15 +133,12 @@ void tests_fft(void) {
     dsp_fft_ifft(fft, Z, z);
     smp_t e = smp_div(smp_eps(dsp_fft_err(fft)), smp(n));
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       cpx_t d = cpx_add(z[i], cpx_neg(cpx_add(x[i], y[i])));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing impulse...\n");
   for (int _ = 0; _ < l; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
@@ -170,17 +151,14 @@ void tests_fft(void) {
     dsp_fft_ifft(fft, X, x);
     dsp_fft_ifft(fft, Y, y);
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
-      cpx_t d =
-          cpx_add(cpx(smp_inv(smp(n)), DSP_ZERO), cpx_neg(cpx_add(x[i], y[i])));
+    for (size_t i = 0; i < n; i++) {
+      cpx_t z = cpx_add(x[i], y[i]);
+      cpx_t d = cpx_add(cpx(smp_inv(smp(n)), DSP_ZERO), cpx_neg(z));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
   printf("Testing shift...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
@@ -201,13 +179,11 @@ void tests_fft(void) {
       }
       dsp_fft_ifft(fft, Y, y);
       dsp_fft_ifft(fft, Z, z);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         cpx_t d = cpx_add(x[i], cpx_neg(cpx_add(y[i], z[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     for (size_t i = 0; i < n; i++) {
       Y[i] = cpx(smp_gauss(), smp_gauss());
@@ -228,33 +204,27 @@ void tests_fft(void) {
       }
       dsp_fft_ifft(fft, Y, z);
       dsp_fft_ifft(fft, Z, w);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         cpx_t d = cpx_add(y[i], cpx_neg(cpx_add(z[i], w[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     dsp_fft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       cpx_t d = cpx_add(x[i], cpx_neg(y[(i + 1) % n]));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
 }
 void tests_rfft(void) {
   // same testing methodology as above
-  unsigned int m = 20, q = 20, l = 4, count;
+  unsigned int m = 20, l = 4;
   smp_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   cpx_t X[BUF_SIZE / 2], Y[BUF_SIZE / 2], Z[BUF_SIZE / 2], W[BUF_SIZE / 2];
   printf("Testing forward Real FFTs\n");
   printf("Testing linearity...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n; i++) {
@@ -268,15 +238,12 @@ void tests_rfft(void) {
     dsp_rfft_fft(fft, z, Z);
     smp_t e = smp_eps(dsp_rfft_err(fft));
     dsp_rfft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n / 2; i++) {
+    for (size_t i = 0; i < n / 2; i++) {
       cpx_t d = cpx_add(Z[i], cpx_neg(cpx_add(X[i], Y[i])));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing impulse...\n");
   for (int _ = 0; _ < l; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
@@ -289,16 +256,13 @@ void tests_rfft(void) {
     dsp_rfft_fft(fft, x, X);
     dsp_rfft_fft(fft, y, Y);
     dsp_rfft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n / 2; i++) {
+    for (size_t i = 0; i < n / 2; i++) {
       cpx_t d = cpx_add(cpx(smp(1), DSP_ZERO), cpx_neg(cpx_add(X[i], Y[i])));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
   printf("Testing shift...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n; i++) {
@@ -319,13 +283,11 @@ void tests_rfft(void) {
       }
       dsp_rfft_fft(fft, y, Y);
       dsp_rfft_fft(fft, z, Z);
-      bool p = true;
-      for (size_t i = 0; p && i < n / 2; i++) {
+      for (size_t i = 0; i < n / 2; i++) {
         cpx_t d = cpx_add(X[i], cpx_neg(cpx_add(Y[i], Z[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     for (size_t i = 0; i < n; i++) {
       y[i] = smp_gauss();
@@ -342,29 +304,23 @@ void tests_rfft(void) {
       }
       dsp_rfft_fft(fft, y, Z);
       dsp_rfft_fft(fft, z, W);
-      bool p = true;
-      for (size_t i = 0; p && i < n / 2; i++) {
+      for (size_t i = 0; i < n / 2; i++) {
         cpx_t d = cpx_add(Y[i], cpx_neg(cpx_add(Z[i], W[i])));
         smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     dsp_rfft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n / 2; i++) {
+    for (size_t i = 0; i < n / 2; i++) {
       smp_t t = smp_mul(DSP_2PI, smp_div(smp(2 * i + 1), smp(2 * n)));
       cpx_t w = cpx(smp_cos(t), smp_neg(smp_sin(t)));
       cpx_t d = cpx_add(X[i], cpx_neg(cpx_mul(Y[i], w)));
       smp_t eps = smp_sqrt(smp_add(smp_mul(d.x, d.x), smp_mul(d.y, d.y)));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing inverse Real FFTs\n");
   printf("Testing linearity...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n / 2; i++) {
@@ -378,14 +334,11 @@ void tests_rfft(void) {
     dsp_rfft_ifft(fft, Z, z);
     smp_t e = smp_div(smp_eps(dsp_rfft_err(fft)), smp(n));
     dsp_rfft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       smp_t eps = smp_abs(smp_add(z[i], smp_neg(smp_add(x[i], y[i]))));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing impulse...\n");
   for (int _ = 0; _ < l; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
@@ -398,17 +351,14 @@ void tests_rfft(void) {
     dsp_rfft_ifft(fft, X, x);
     dsp_rfft_ifft(fft, Y, y);
     dsp_rfft_del(fft);
-    bool p = true;
-    for (size_t i = 0; p && i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       smp_t t = smp_mul(DSP_2PI, smp_div(smp(i), smp(2 * n)));
-      smp_t eps = smp_abs(
-          smp_add(smp_div(smp_cos(t), smp(n)), smp_neg(smp_add(x[i], y[i]))));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      smp_t c = smp_div(smp_cos(t), smp(n));
+      smp_t eps = smp_abs(smp_add(c, smp_neg(smp_add(x[i], y[i]))));
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
   printf("Testing shift...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n / 2; i++) {
@@ -429,12 +379,10 @@ void tests_rfft(void) {
       }
       dsp_rfft_ifft(fft, Y, y);
       dsp_rfft_ifft(fft, Z, z);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         smp_t eps = smp_abs(smp_add(x[i], smp_neg(smp_add(y[i], z[i]))));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     for (size_t i = 0; i < n / 2; i++) {
       Y[i] = cpx(smp_gauss(), smp_gauss());
@@ -455,12 +403,10 @@ void tests_rfft(void) {
       }
       dsp_rfft_ifft(fft, Y, z);
       dsp_rfft_ifft(fft, Z, w);
-      bool p = true;
-      for (size_t i = 0; p && i < n; i++) {
+      for (size_t i = 0; i < n; i++) {
         smp_t eps = smp_abs(smp_add(y[i], smp_neg(smp_add(z[i], w[i]))));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     bool p = true;
     for (size_t i = 0; p && i < n; i++) {
@@ -469,15 +415,13 @@ void tests_rfft(void) {
         eps = smp_add(x[i], smp_neg(y[(i + 1) % n]));
       else
         eps = smp_add(x[i], y[(i + 1) % n]);
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
 }
 void tests_filter(void) {
   // again the same testing methodology
-  unsigned int m = 20, q = 20, l = 4, count;
+  unsigned int m = 20, l = 4;
 #ifdef DSP_SAMPLE_FLOAT
   float e = 5e-5f;
 #endif
@@ -487,7 +431,6 @@ void tests_filter(void) {
   smp_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   smp_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing linearity...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = smp_gauss();
@@ -512,14 +455,11 @@ void tests_filter(void) {
     for (size_t i = 0; i < BUF_SIZE; i++)
       dsp_filter_smp(filter, z + i, Z + i);
     dsp_filter_del(filter);
-    bool p = true;
-    for (size_t i = 0; p && i < BUF_SIZE; i++) {
+    for (size_t i = 0; i < BUF_SIZE; i++) {
       smp_t eps = smp_abs(smp_add(Z[i], smp_neg(smp_add(X[i], Y[i]))));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing poles...\n");
   for (int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
@@ -528,7 +468,6 @@ void tests_filter(void) {
     dsp_filter_t *filter = dsp_filter_new(1, 1);
     dsp_filter_init(filter, 0, t, f0, Q);
     smp_t w0 = smp_mul(DSP_2PI, f0), cc = smp_cos(w0), ss = smp_sin(w0);
-    bool p = true;
     switch (t) {
     case DSP_FILTER_LP_FO:
     case DSP_FILTER_HP_FO: {
@@ -547,11 +486,11 @@ void tests_filter(void) {
       for (size_t i = 0; i < n; i++)
         dsp_filter_smp(filter, y + i, Y + i);
       smp_t y1 = smp_add(X[1], Y[1]);
-      for (ptrdiff_t i = 1; p && i < n; i++) {
+      for (ptrdiff_t i = 1; i < n; i++) {
         smp_t c1 = smp_exp(smp_mul(r, smp(i - 1)));
         smp_t y = smp_mul(c1, y1);
         smp_t eps = smp_abs(smp_add(y, smp_neg(smp_add(X[i], Y[i]))));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
     } break;
     case DSP_FILTER_LP:
@@ -575,7 +514,7 @@ void tests_filter(void) {
       for (size_t i = 0; i < n; i++)
         dsp_filter_smp(filter, y + i, Y + i);
       smp_t y1 = smp_add(X[1], Y[1]), y2 = smp_add(X[2], Y[2]);
-      for (ptrdiff_t i = 1; p && i < n; i++) {
+      for (ptrdiff_t i = 1; i < n; i++) {
         smp_t c1 = smp_exp(smp_mul(r, smp(i - 1)));
         c1 = smp_mul(c1, smp_sin(smp_mul(t, smp(i - 2))));
         c1 = smp_div(c1, smp_sin(t));
@@ -584,13 +523,12 @@ void tests_filter(void) {
         c2 = smp_div(c2, smp_sin(t));
         smp_t y = smp_add(smp_mul(c2, y2), smp_neg(smp_mul(c1, y1)));
         smp_t eps = smp_abs(smp_add(y, smp_neg(smp_add(X[i], Y[i]))));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
     } break;
     case DSP_FILTER_TYPES:
     }
     dsp_filter_del(filter);
-    assert(p);
   }
   printf("Testing DC response...\n");
   for (int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
@@ -663,7 +601,6 @@ void tests_filter(void) {
     }
   }
   printf("Testing time invariance...\n");
-  count = 0;
   for (int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = i ? smp_gauss() : DSP_ZERO;
@@ -697,12 +634,10 @@ void tests_filter(void) {
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
         dsp_filter_smp(filter, z + i, Z + i);
-      bool p = true;
-      for (size_t i = 0; p && i < BUF_SIZE; i++) {
+      for (size_t i = 0; i < BUF_SIZE; i++) {
         smp_t eps = smp_abs(smp_add(X[i], smp_neg(smp_add(Y[i], Z[i]))));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     for (size_t i = 0; i < BUF_SIZE; i++) {
       y[i] = smp_gauss();
@@ -727,22 +662,17 @@ void tests_filter(void) {
       dsp_filter_reset(filter);
       for (size_t i = 0; i < BUF_SIZE; i++)
         dsp_filter_smp(filter, z + i, W + i);
-      bool p = true;
-      for (size_t i = 0; p && i < BUF_SIZE; i++) {
+      for (size_t i = 0; i < BUF_SIZE; i++) {
         smp_t eps = smp_add(Y[i], smp_neg(smp_add(Z[i], W[i])));
-        p = p && smp_cmp(&eps, &e) <= 0;
+        assert(smp_cmp(&eps, &e) <= 0);
       }
-      assert(p);
     }
     dsp_filter_del(filter);
-    bool p = true;
-    for (size_t i = 0; p && i < BUF_SIZE - 1; i++) {
+    for (size_t i = 0; i < BUF_SIZE - 1; i++) {
       smp_t eps = smp_abs(smp_add(X[i + 1], smp_neg(Y[i])));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    count += p;
   }
-  assert(count >= q);
   printf("Testing combination...\n");
   for (int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++)
@@ -776,12 +706,10 @@ void tests_filter(void) {
     dsp_filter_del(filter1);
     dsp_filter_del(filter2);
     dsp_filter_del(filter3);
-    bool p = true;
-    for (size_t i = 0; p && i < BUF_SIZE; i++) {
+    for (size_t i = 0; i < BUF_SIZE; i++) {
       smp_t eps = smp_abs(smp_add(w[i], smp_neg(z[i])));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
   printf("Testing channels...\n");
   for (int _ = 0; _ < m; _++) {
@@ -805,20 +733,18 @@ void tests_filter(void) {
     dsp_filter_reset(f1);
     for (size_t i = 0; i < BUF_SIZE / c; i++)
       dsp_filter_smp(f1, x + i, X + i);
+    dsp_filter_del(f1);
     dsp_filter_reset(fc);
     for (size_t i = 0; i < BUF_SIZE / c; i++)
       dsp_filter_smp(fc, y + c * i, Y + c * i);
     dsp_filter_reset(fc);
     for (size_t i = 0; i < BUF_SIZE / c; i++)
       dsp_filter_smp(fc, z + c * i, Z + c * i);
-    dsp_filter_del(f1);
     dsp_filter_del(fc);
-    bool p = true;
-    for (size_t i = 0; p && i < c * (BUF_SIZE / c); i++) {
+    for (size_t i = 0; i < c * (BUF_SIZE / c); i++) {
       smp_t eps = smp_abs(smp_add(X[i / c], smp_neg(smp_add(Y[i], Z[i]))));
-      p = p && smp_cmp(&eps, &e) <= 0;
+      assert(smp_cmp(&eps, &e) <= 0);
     }
-    assert(p);
   }
 }
 #define REGTEST(test)                                                          \
