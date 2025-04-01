@@ -8,7 +8,7 @@ DIR_GUARD = mkdir -p $(@D)
 CC := clang
 LIBS := -lm -lsndfile
 PKG_CONFIG := #libpipewire-0.3
-CFLAGS := -O3 -Wall -std=gnu23 -I$(DIR_INC)
+CFLAGS := -O3 -Wextra -Wpedantic -std=gnu23 -I$(DIR_INC)
 DEFNS := -DDSP_SAMPLE_FLOAT
 
 TARGET := $(DIR_LIB)/libdsp.so

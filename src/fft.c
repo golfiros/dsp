@@ -165,10 +165,10 @@ static inline void _fft(struct dsp_fft fft, const cpx_t *x, size_t d, cpx_t *X,
     _bfly(X + k, M, N);
   }
 }
-inline void dsp_fft_fft(const struct dsp_fft *fft, const cpx_t *x, cpx_t *X) {
+void dsp_fft_fft(const struct dsp_fft *fft, const cpx_t *x, cpx_t *X) {
   _fft(*fft, x, 0, X, false);
 }
-inline void dsp_fft_ifft(const struct dsp_fft *fft, const cpx_t *X, cpx_t *x) {
+void dsp_fft_ifft(const struct dsp_fft *fft, const cpx_t *X, cpx_t *x) {
   _fft(*fft, X, 0, x, true);
   for (size_t i = 0; i < fft->N; i++)
     x[i] = cpx(num_div(x[i].x, num(fft->N)),
@@ -236,8 +236,8 @@ void dsp_rfft_ifft(const struct dsp_rfft *fft, const cpx_t *X, num_t *x) {
   cpx_t *y = fft->y, *z = fft->z;
   for (size_t k = 0; k < N; k++) {
     size_t l = N - 1 - k;
-    cpx_t Xe = cpx_scale(num(.25), cpx_add(X[k], cpx_conj(X[l])));
-    cpx_t Xo = cpx_scale(num(.25), cpx_add(X[k], cpx_neg(cpx_conj(X[l]))));
+    cpx_t Xe = cpx_scale(num(.5), cpx_add(X[k], cpx_conj(X[l])));
+    cpx_t Xo = cpx_scale(num(.5), cpx_add(X[k], cpx_neg(cpx_conj(X[l]))));
     Xo = cpx_mul(cpx(DSP_ZERO, num(1)), Xo);
     z[k] = cpx_add(Xe, cpx_mul(Xo, cpx_conj(fft->w[2 * k + 1])));
   }

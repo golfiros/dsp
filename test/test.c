@@ -22,7 +22,7 @@ void tests_fft(void) {
   cpx_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing forward FFTs\n");
   printf("Testing linearity...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       x[i] = cpx(num_gauss(), num_gauss());
@@ -42,7 +42,7 @@ void tests_fft(void) {
     }
   }
   printf("Testing impulse...\n");
-  for (int _ = 0; _ < l; _++) {
+  for (unsigned int _ = 0; _ < l; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       x[i] = cpx(num_gauss(), num_gauss());
@@ -60,7 +60,7 @@ void tests_fft(void) {
     }
   }
   printf("Testing shift...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       x[i] = i ? cpx(num_gauss(), num_gauss()) : cpx(DSP_ZERO, DSP_ZERO);
@@ -73,7 +73,7 @@ void tests_fft(void) {
     dsp_fft_fft(fft, z, Z);
     for (size_t i = 0; i < n; i++)
       X[i] = cpx_add(Y[i], Z[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n; i++) {
         y[i] = cpx(num_gauss(), num_gauss());
         z[i] = cpx_add(x[i], cpx_neg(y[i]));
@@ -94,7 +94,7 @@ void tests_fft(void) {
     dsp_fft_fft(fft, z, W);
     for (size_t i = 0; i < n; i++)
       Y[i] = cpx_add(Z[i], W[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n; i++) {
         y[i] = cpx(num_gauss(), num_gauss());
         z[i] = cpx_add(x[(i + 1) % n], cpx_neg(y[i]));
@@ -118,7 +118,7 @@ void tests_fft(void) {
   }
   printf("Testing inverse FFTs\n");
   printf("Testing linearity...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       X[i] = cpx(num_gauss(), num_gauss());
@@ -138,7 +138,7 @@ void tests_fft(void) {
     }
   }
   printf("Testing impulse...\n");
-  for (int _ = 0; _ < l; _++) {
+  for (unsigned int _ = 0; _ < l; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       X[i] = cpx(num_gauss(), num_gauss());
@@ -157,7 +157,7 @@ void tests_fft(void) {
     }
   }
   printf("Testing shift...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4));
     for (size_t i = 0; i < n; i++) {
       X[i] = cpx(num_gauss(), num_gauss());
@@ -170,7 +170,7 @@ void tests_fft(void) {
     dsp_fft_ifft(fft, Z, z);
     for (size_t i = 0; i < n; i++)
       x[i] = cpx_add(y[i], z[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 2; i < n; i++) {
         Y[i] = cpx(num_gauss(), num_gauss());
         Z[i] = cpx_add(X[i], cpx_neg(Y[i]));
@@ -193,7 +193,7 @@ void tests_fft(void) {
     dsp_fft_ifft(fft, Z, w);
     for (size_t i = 0; i < n; i++)
       y[i] = cpx_add(z[i], w[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n; i++) {
         Y[i] = cpx(num_gauss(), num_gauss());
         num_t t = num_mul(DSP_2PI, num_div(num(i), num(n)));
@@ -223,7 +223,7 @@ void tests_rfft(void) {
   cpx_t X[BUF_SIZE / 2], Y[BUF_SIZE / 2], Z[BUF_SIZE / 2], W[BUF_SIZE / 2];
   printf("Testing forward Real FFTs\n");
   printf("Testing linearity...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n; i++) {
       x[i] = num_gauss();
@@ -243,7 +243,7 @@ void tests_rfft(void) {
     }
   }
   printf("Testing impulse...\n");
-  for (int _ = 0; _ < l; _++) {
+  for (unsigned int _ = 0; _ < l; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n; i++) {
       x[i] = num_gauss();
@@ -261,7 +261,7 @@ void tests_rfft(void) {
     }
   }
   printf("Testing shift...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n; i++) {
       x[i] = i ? num_gauss() : DSP_ZERO;
@@ -274,7 +274,7 @@ void tests_rfft(void) {
     dsp_rfft_fft(fft, z, Z);
     for (size_t i = 0; i < n / 2; i++)
       X[i] = cpx_add(Y[i], Z[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n; i++) {
         y[i] = num_gauss();
         z[i] = num_add(x[i], num_neg(y[i]));
@@ -295,7 +295,7 @@ void tests_rfft(void) {
     dsp_rfft_fft(fft, z, W);
     for (size_t i = 0; i < n / 2; i++)
       Y[i] = cpx_add(Z[i], W[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n; i++) {
         y[i] = num_gauss();
         z[i] = num_add(x[(i + 1) % n], num_neg(y[i]));
@@ -319,7 +319,7 @@ void tests_rfft(void) {
   }
   printf("Testing inverse Real FFTs\n");
   printf("Testing linearity...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n / 2; i++) {
       X[i] = cpx(num_gauss(), num_gauss());
@@ -338,7 +338,7 @@ void tests_rfft(void) {
     }
   }
   printf("Testing impulse...\n");
-  for (int _ = 0; _ < l; _++) {
+  for (unsigned int _ = 0; _ < l; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n / 2; i++) {
       X[i] = cpx(num_gauss(), num_gauss());
@@ -351,13 +351,13 @@ void tests_rfft(void) {
     dsp_rfft_del(fft);
     for (size_t i = 0; i < n; i++) {
       num_t t = num_mul(DSP_2PI, num_div(num(i), num(2 * n)));
-      num_t c = num_div(num_cos(t), num(n));
+      num_t c = num_div(num_mul(num(2), num_cos(t)), num(n));
       num_t eps = num_abs(num_add(c, num_neg(num_add(x[i], y[i]))));
       assert(num_cmp(&eps, &e) <= 0);
     }
   }
   printf("Testing shift...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t n = 2 * ((BUF_SIZE / 4 + (rand() % (3 * BUF_SIZE / 4))) / 2);
     for (size_t i = 0; i < n / 2; i++) {
       X[i] = i ? cpx(num_gauss(), num_gauss()) : cpx(DSP_ZERO, DSP_ZERO);
@@ -370,7 +370,7 @@ void tests_rfft(void) {
     dsp_rfft_ifft(fft, Z, z);
     for (size_t i = 0; i < n; i++)
       x[i] = num_add(y[i], z[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 2; i < n / 2; i++) {
         Y[i] = cpx(num_gauss(), num_gauss());
         Z[i] = cpx_add(X[i], cpx_neg(Y[i]));
@@ -392,7 +392,7 @@ void tests_rfft(void) {
     dsp_rfft_ifft(fft, Z, w);
     for (size_t i = 0; i < n; i++)
       y[i] = num_add(z[i], w[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < n / 2; i++) {
         Y[i] = cpx(num_gauss(), num_gauss());
         num_t t = num_mul(DSP_2PI, num_div(num(2 * i + 1), num(2 * n)));
@@ -429,7 +429,7 @@ void tests_filter(void) {
   num_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   num_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing linearity...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = num_gauss();
       y[i] = num_gauss();
@@ -459,7 +459,7 @@ void tests_filter(void) {
     }
   }
   printf("Testing poles...\n");
-  for (int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
+  for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
@@ -484,8 +484,8 @@ void tests_filter(void) {
       for (size_t i = 0; i < n; i++)
         dsp_filter_smp(filter, y + i, Y + i);
       num_t y1 = num_add(X[1], Y[1]);
-      for (ptrdiff_t i = 1; i < n; i++) {
-        num_t c1 = num_exp(num_mul(r, num(i - 1)));
+      for (size_t i = 1; i < n; i++) {
+        num_t c1 = num_exp(num_mul(r, num((ptrdiff_t)i - 1)));
         num_t y = num_mul(c1, y1);
         num_t eps = num_abs(num_add(y, num_neg(num_add(X[i], Y[i]))));
         assert(num_cmp(&eps, &e) <= 0);
@@ -512,12 +512,12 @@ void tests_filter(void) {
       for (size_t i = 0; i < n; i++)
         dsp_filter_smp(filter, y + i, Y + i);
       num_t y1 = num_add(X[1], Y[1]), y2 = num_add(X[2], Y[2]);
-      for (ptrdiff_t i = 1; i < n; i++) {
-        num_t c1 = num_exp(num_mul(r, num(i - 1)));
-        c1 = num_mul(c1, num_sin(num_mul(t, num(i - 2))));
+      for (size_t i = 1; i < n; i++) {
+        num_t c1 = num_exp(num_mul(r, num((ptrdiff_t)i - 1)));
+        c1 = num_mul(c1, num_sin(num_mul(t, num((ptrdiff_t)i - 2))));
         c1 = num_div(c1, num_sin(t));
-        num_t c2 = num_exp(num_mul(r, num(i - 2)));
-        c2 = num_mul(c2, num_sin(num_mul(t, num(i - 1))));
+        num_t c2 = num_exp(num_mul(r, num((ptrdiff_t)i - 2)));
+        c2 = num_mul(c2, num_sin(num_mul(t, num((ptrdiff_t)i - 1))));
         c2 = num_div(c2, num_sin(t));
         num_t y = num_add(num_mul(c2, y2), num_neg(num_mul(c1, y1)));
         num_t eps = num_abs(num_add(y, num_neg(num_add(X[i], Y[i]))));
@@ -529,7 +529,7 @@ void tests_filter(void) {
     dsp_filter_del(filter);
   }
   printf("Testing DC response...\n");
-  for (int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
+  for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
@@ -564,7 +564,7 @@ void tests_filter(void) {
     }
   }
   printf("Testing Nyquist response...\n");
-  for (int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
+  for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
     enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
@@ -599,7 +599,7 @@ void tests_filter(void) {
     }
   }
   printf("Testing time invariance...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = i ? num_gauss() : DSP_ZERO;
       y[i] = num_gauss();
@@ -621,7 +621,7 @@ void tests_filter(void) {
       dsp_filter_smp(filter, z + i, Z + i);
     for (size_t i = 0; i < BUF_SIZE; i++)
       X[i] = num_add(Y[i], Z[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < BUF_SIZE; i++) {
         y[i] = num_gauss();
         z[i] = num_add(x[i], num_neg(y[i]));
@@ -649,7 +649,7 @@ void tests_filter(void) {
       dsp_filter_smp(filter, z + i, W + i);
     for (size_t i = 0; i < BUF_SIZE; i++)
       Y[i] = num_add(Z[i], W[i]);
-    for (int _ = 0; _ < l + 1; _++) {
+    for (unsigned int _ = 0; _ < l + 1; _++) {
       for (size_t i = 0; i < BUF_SIZE; i++) {
         y[i] = num_gauss();
         z[i] = num_add(x[(i + 1) % BUF_SIZE], num_neg(y[i]));
@@ -672,7 +672,7 @@ void tests_filter(void) {
     }
   }
   printf("Testing combination...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     for (size_t i = 0; i < BUF_SIZE; i++)
       x[i] = num_gauss();
     size_t n1 = rand() % 4 + 1, n2 = rand() % 4 + 1;
@@ -710,7 +710,7 @@ void tests_filter(void) {
     }
   }
   printf("Testing channels...\n");
-  for (int _ = 0; _ < m; _++) {
+  for (unsigned int _ = 0; _ < m; _++) {
     size_t c = rand() % 3 + 1;
     for (size_t i = 0; i < BUF_SIZE / c; i++) {
       x[i] = num_gauss();

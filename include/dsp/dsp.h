@@ -15,8 +15,7 @@ typedef float num_t;
 #define DSP_1_2PI 0.15915494309189533576888376337251436f
 #define DSP_MIN (-(float)INFINITY)
 #define DSP_MAX ((float)INFINITY)
-// #define num(x) (float)(x)
-static inline num_t num(double x) { return x; }
+#define num(x) (float)(x)
 static inline int num_cmp(const void *x, const void *y) {
   num_t X = *(float *)x, Y = *(float *)y;
   if (X > Y)
@@ -46,8 +45,7 @@ static inline num_t num_cos(num_t x) { return cosf(x); }
 static inline num_t num_sin(num_t x) { return sinf(x); }
 static inline num_t num_atan2(num_t y, num_t x) { return atan2f(y, x); }
 static inline num_t num_rand(num_t a, num_t b) {
-  return num_fma(num_add(b, num_neg(a)), num_div(num(rand()), num(RAND_MAX)),
-                 a);
+  return fmaf(b - a, (float)rand() / (float)RAND_MAX, a);
 }
 #endif // DSP_SAMPLE_FLOAT
 
@@ -91,8 +89,7 @@ static inline num_t num_cos(num_t x) { return cos(x); }
 static inline num_t num_sin(num_t x) { return sin(x); }
 static inline num_t num_atan2(num_t y, num_t x) { return atan2(y, x); }
 static inline num_t num_rand(num_t a, num_t b) {
-  return num_fma(num_add(b, num_neg(a)), num_div(num(rand()), num(RAND_MAX)),
-                 a);
+  return fma(b - a, (double)rand() / (double)RAND_MAX, a);
 }
 #endif // DSP_SAMPLE_DOUBLE
 
@@ -104,7 +101,7 @@ static inline num_t num_gauss() {
 }
 static inline num_t num_eps(num_t x) {
   num_t e = x;
-  while (num_cmp(&(num_t){num_add(x, num_div(e, 2))}, &x))
+  while (num_cmp(&(num_t){num_add(x, num_div(e, num(2)))}, &x))
     e = num_div(e, num(2));
   return (e);
 }
@@ -119,7 +116,7 @@ static inline cpx_t cpx_scale(num_t a, cpx_t b) {
 static inline cpx_t cpx_conj(cpx_t a) { return cpx(a.x, num_neg(a.y)); }
 static inline cpx_t cpx_add(cpx_t a, cpx_t b) {
   return cpx(num_add(a.x, b.x), num_add(a.y, b.y));
-};
+}
 static inline cpx_t cpx_neg(cpx_t a) { return cpx(num_neg(a.x), num_neg(a.y)); }
 static inline cpx_t cpx_mul(cpx_t a, cpx_t b) {
   return cpx(num_fma(a.x, b.x, num_neg(num_mul(a.y, b.y))),
