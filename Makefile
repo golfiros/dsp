@@ -16,7 +16,7 @@ BINARIES := $(patsubst $(DIR_SRC)/%.c, $(DIR_BIN)/%.o, $(wildcard $(DIR_SRC)/*.c
 
 $(TARGET): $(BINARIES)
 	$(DIR_GUARD)
-	$(CC) -fPIC $< -shared $(shell pkg-config --libs $(PKG_CONFIG)) $(LIBS) -o $@
+	$(CC) -fPIC $^ -shared $(shell pkg-config --libs $(PKG_CONFIG)) $(LIBS) -o $@
 
 $(DIR_BIN)/%.o: $(DIR_SRC)/%.c
 	$(DIR_GUARD)

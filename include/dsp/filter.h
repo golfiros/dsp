@@ -3,25 +3,24 @@
 
 #include <dsp/dsp.h>
 
-typedef struct {
-  smp_t a[2], b[3];
-} dsp_biquad_t;
-typedef struct {
-  size_t n, a, b;
-  smp_t x[2];
-  struct {
-    dsp_biquad_t p;
-    smp_t y[2];
-  } f[];
-} dsp_filter_t;
+typedef struct dsp_filter dsp_filter_t;
 
-#define DSP_FILTER_AUTO(filter, stages)                                        \
-  dsp_filter_t *(filter);                                                      \
-  char(filter##_data)[sizeof(*(filter)) + (stages) * sizeof(*(filter)->f)];    \
-  *((filter) = (void *)(filter##_data)) = (dsp_filter_t) {                     \
-    .n = (stages), .a = (stages),                                              \
-  }
-void dsp_filter_init(dsp_filter_t *filter);
-smp_t dsp_filter_sample(dsp_filter_t *filter, smp_t x);
+dsp_filter_t *dsp_filter_new(size_t n);
+void dsp_filter_del(dsp_filter_t *filter);
+
+void dsp_filter_reset(dsp_filter_t *filter);
+
+enum dsp_filter_type {
+  DSP_FILTER_LP_FO, // H(s) = 1     / (1 + s)
+  DSP_FILTER_HP_FO, // H(s) = s     / (1 + s)
+  DSP_FILTER_LP,    // H(s) = 1     / (s2 + s / Q + 1)
+  DSP_FILTER_BP,    // H(s) = s / Q / (s2 + s / Q + 1)
+  DSP_FILTER_HP,    // H(s) = s2    / (s2 + s / Q + 1)
+  DSP_FILTER_TYPES,
+};
+void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
+                     smp_t f0, smp_t Q);
+
+smp_t dsp_filter_smp(dsp_filter_t *filter, smp_t x);
 
 #endif // !__DSP_FILTER_H__
