@@ -19,8 +19,8 @@ enum dsp_filter_type {
   DSP_FILTER_TYPES,
 };
 void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
-                     smp_t f0, smp_t Q);
+                     num_t f0, num_t Q);
 
-void dsp_filter_smp(dsp_filter_t *filter, const smp_t *x, smp_t *y);
+void dsp_filter_smp(dsp_filter_t *filter, const num_t *x, num_t *y);
 
 #endif // !__DSP_FILTER_H__

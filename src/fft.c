@@ -32,9 +32,9 @@ static size_t _factor(size_t *n) {
   }
 }
 static inline cpx_t _w(size_t m, size_t n) {
-  smp_t t = smp_div(smp(m), smp(n));
-  t = smp_mul(smp_neg(t), DSP_2PI);
-  return cpx(smp_cos(t), smp_sin(t));
+  num_t t = num_div(num(m), num(n));
+  t = num_mul(num_neg(t), DSP_2PI);
+  return cpx(num_cos(t), num_sin(t));
 }
 struct dsp_fft {
   size_t N, m[16], n[16];
@@ -62,18 +62,18 @@ void dsp_fft_del(struct dsp_fft *fft) {
     free(fft->w);
   free(fft);
 }
-smp_t dsp_fft_err(dsp_fft_t *fft) {
+num_t dsp_fft_err(dsp_fft_t *fft) {
   // derived in "Roundoff error analysis of the Fast Fourier Transform" by G. U.
   // Ramos, to be passed to dps_eps
   size_t k = 0;
-  smp_t e = DSP_ZERO;
-  const smp_t g = smp(1);
+  num_t e = DSP_ZERO;
+  const num_t g = num(1);
   do {
-    smp_t a = smp_mul(smp(2), smp_sqrt(smp(fft->m[k])));
-    e = smp_fma(a, smp_add(smp(fft->m[k]), g), e);
+    num_t a = num_mul(num(2), num_sqrt(num(fft->m[k])));
+    e = num_fma(a, num_add(num(fft->m[k]), g), e);
   } while (fft->n[k++] > 1);
-  e = smp_fma(smp(k - 1), smp_fma(2, g, 3), e);
-  return smp_mul(smp(fft->N), e);
+  e = num_fma(num(k - 1), num_fma(2, g, 3), e);
+  return num_mul(num(fft->N), e);
 }
 static inline void _bfly(cpx_t *X, size_t p, size_t s) {
   switch (p) {
@@ -92,23 +92,23 @@ static inline void _bfly(cpx_t *X, size_t p, size_t s) {
     X[0 * s] = cpx_add(y[0], y[1]);
     X[0 * s] = cpx_add(X[0 * s], y[2]);
 
-    X[1 * s].x = smp_fma(smp(-0.5), y[1].x, y[0].x);
-    X[1 * s].x = smp_fma(smp_sqrt(smp(0.75)), y[1].y, X[1 * s].x);
-    X[1 * s].x = smp_fma(smp(-0.5), y[2].x, X[1 * s].x);
-    X[1 * s].x = smp_fma(smp_sqrt(smp(0.75)), smp_neg(y[2].y), X[1 * s].x);
-    X[1 * s].y = smp_fma(smp(-0.5), y[1].y, y[0].y);
-    X[1 * s].y = smp_fma(smp_sqrt(smp(0.75)), smp_neg(y[1].x), X[1 * s].y);
-    X[1 * s].y = smp_fma(smp(-0.5), y[2].y, X[1 * s].y);
-    X[1 * s].y = smp_fma(smp_sqrt(smp(0.75)), y[2].x, X[1 * s].y);
+    X[1 * s].x = num_fma(num(-0.5), y[1].x, y[0].x);
+    X[1 * s].x = num_fma(num_sqrt(num(0.75)), y[1].y, X[1 * s].x);
+    X[1 * s].x = num_fma(num(-0.5), y[2].x, X[1 * s].x);
+    X[1 * s].x = num_fma(num_sqrt(num(0.75)), num_neg(y[2].y), X[1 * s].x);
+    X[1 * s].y = num_fma(num(-0.5), y[1].y, y[0].y);
+    X[1 * s].y = num_fma(num_sqrt(num(0.75)), num_neg(y[1].x), X[1 * s].y);
+    X[1 * s].y = num_fma(num(-0.5), y[2].y, X[1 * s].y);
+    X[1 * s].y = num_fma(num_sqrt(num(0.75)), y[2].x, X[1 * s].y);
 
-    X[2 * s].x = smp_fma(smp(-0.5), y[1].x, y[0].x);
-    X[2 * s].x = smp_fma(smp_sqrt(smp(0.75)), smp_neg(y[1].y), X[2 * s].x);
-    X[2 * s].x = smp_fma(smp(-0.5), y[2].x, X[2 * s].x);
-    X[2 * s].x = smp_fma(smp_sqrt(smp(0.75)), y[2].y, X[2 * s].x);
-    X[2 * s].y = smp_fma(smp(-0.5), y[1].y, y[0].y);
-    X[2 * s].y = smp_fma(smp_sqrt(smp(0.75)), y[1].x, X[2 * s].y);
-    X[2 * s].y = smp_fma(smp(-0.5), y[2].y, X[2 * s].y);
-    X[2 * s].y = smp_fma(smp_sqrt(smp(0.75)), smp_neg(y[2].x), X[2 * s].y);
+    X[2 * s].x = num_fma(num(-0.5), y[1].x, y[0].x);
+    X[2 * s].x = num_fma(num_sqrt(num(0.75)), num_neg(y[1].y), X[2 * s].x);
+    X[2 * s].x = num_fma(num(-0.5), y[2].x, X[2 * s].x);
+    X[2 * s].x = num_fma(num_sqrt(num(0.75)), y[2].y, X[2 * s].x);
+    X[2 * s].y = num_fma(num(-0.5), y[1].y, y[0].y);
+    X[2 * s].y = num_fma(num_sqrt(num(0.75)), y[1].x, X[2 * s].y);
+    X[2 * s].y = num_fma(num(-0.5), y[2].y, X[2 * s].y);
+    X[2 * s].y = num_fma(num_sqrt(num(0.75)), num_neg(y[2].x), X[2 * s].y);
 
     break;
   }
@@ -119,17 +119,17 @@ static inline void _bfly(cpx_t *X, size_t p, size_t s) {
     X[0 * s] = cpx_add(X[0 * s], y[2]);
     X[0 * s] = cpx_add(X[0 * s], y[3]);
 
-    X[1 * s] = cpx_add(y[0], cpx(y[1].y, smp_neg(y[1].x)));
+    X[1 * s] = cpx_add(y[0], cpx(y[1].y, num_neg(y[1].x)));
     X[1 * s] = cpx_add(X[1 * s], cpx_neg(y[2]));
-    X[1 * s] = cpx_add(X[1 * s], cpx(smp_neg(y[3].y), y[3].x));
+    X[1 * s] = cpx_add(X[1 * s], cpx(num_neg(y[3].y), y[3].x));
 
     X[2 * s] = cpx_add(y[0], cpx_neg(y[1]));
     X[2 * s] = cpx_add(X[2 * s], y[2]);
     X[2 * s] = cpx_add(X[2 * s], cpx_neg(y[3]));
 
-    X[3 * s] = cpx_add(y[0], cpx(smp_neg(y[1].y), y[1].x));
+    X[3 * s] = cpx_add(y[0], cpx(num_neg(y[1].y), y[1].x));
     X[3 * s] = cpx_add(X[3 * s], cpx_neg(y[2]));
-    X[3 * s] = cpx_add(X[3 * s], cpx(y[3].y, smp_neg(y[3].x)));
+    X[3 * s] = cpx_add(X[3 * s], cpx(y[3].y, num_neg(y[3].x)));
 
     break;
   }
@@ -171,8 +171,8 @@ inline void dsp_fft_fft(const struct dsp_fft *fft, const cpx_t *x, cpx_t *X) {
 inline void dsp_fft_ifft(const struct dsp_fft *fft, const cpx_t *X, cpx_t *x) {
   _fft(*fft, X, 0, x, true);
   for (size_t i = 0; i < fft->N; i++)
-    x[i] = cpx(smp_div(x[i].x, smp(fft->N)),
-               smp_div(smp_neg(x[i].y), smp(fft->N)));
+    x[i] = cpx(num_div(x[i].x, num(fft->N)),
+               num_div(num_neg(x[i].y), num(fft->N)));
 }
 
 struct dsp_rfft {
@@ -216,8 +216,8 @@ void dsp_rfft_del(struct dsp_rfft *fft) {
   }
   free(fft);
 }
-smp_t dsp_rfft_err(struct dsp_rfft *fft) { return dsp_fft_err(&fft->fft); }
-void dsp_rfft_fft(const struct dsp_rfft *fft, const smp_t *x, cpx_t *X) {
+num_t dsp_rfft_err(struct dsp_rfft *fft) { return dsp_fft_err(&fft->fft); }
+void dsp_rfft_fft(const struct dsp_rfft *fft, const num_t *x, cpx_t *X) {
   size_t N = fft->fft.N;
   cpx_t *y = fft->y, *z = fft->z;
   for (size_t n = 0; n < N; n++)
@@ -225,20 +225,20 @@ void dsp_rfft_fft(const struct dsp_rfft *fft, const smp_t *x, cpx_t *X) {
   dsp_fft_fft(&fft->fft, y, z);
   for (size_t k = 0; k < N; k++) {
     size_t l = N - 1 - k;
-    cpx_t Xe = cpx_scale(smp(.5), cpx_add(z[k], cpx_conj(z[l])));
-    cpx_t Xo = cpx_scale(smp(.5), cpx_add(z[k], cpx_neg(cpx_conj(z[l]))));
-    Xo = cpx_mul(cpx(DSP_ZERO, smp(-1)), Xo);
+    cpx_t Xe = cpx_scale(num(.5), cpx_add(z[k], cpx_conj(z[l])));
+    cpx_t Xo = cpx_scale(num(.5), cpx_add(z[k], cpx_neg(cpx_conj(z[l]))));
+    Xo = cpx_mul(cpx(DSP_ZERO, num(-1)), Xo);
     X[k] = cpx_add(Xe, cpx_mul(Xo, fft->w[2 * k + 1]));
   }
 }
-void dsp_rfft_ifft(const struct dsp_rfft *fft, const cpx_t *X, smp_t *x) {
+void dsp_rfft_ifft(const struct dsp_rfft *fft, const cpx_t *X, num_t *x) {
   size_t N = fft->fft.N;
   cpx_t *y = fft->y, *z = fft->z;
   for (size_t k = 0; k < N; k++) {
     size_t l = N - 1 - k;
-    cpx_t Xe = cpx_scale(smp(.25), cpx_add(X[k], cpx_conj(X[l])));
-    cpx_t Xo = cpx_scale(smp(.25), cpx_add(X[k], cpx_neg(cpx_conj(X[l]))));
-    Xo = cpx_mul(cpx(DSP_ZERO, smp(1)), Xo);
+    cpx_t Xe = cpx_scale(num(.25), cpx_add(X[k], cpx_conj(X[l])));
+    cpx_t Xo = cpx_scale(num(.25), cpx_add(X[k], cpx_neg(cpx_conj(X[l]))));
+    Xo = cpx_mul(cpx(DSP_ZERO, num(1)), Xo);
     z[k] = cpx_add(Xe, cpx_mul(Xo, cpx_conj(fft->w[2 * k + 1])));
   }
   dsp_fft_ifft(&fft->fft, z, y);

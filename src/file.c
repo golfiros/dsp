@@ -47,12 +47,12 @@ dsp_file_t *dsp_file_read(const char *name, bool interleaved) {
   dsp_file_t *f =
       malloc(sizeof *f + info.channels * info.frames * sizeof *f->buffer);
   *f = (typeof(*f)){
-      .rate = smp(info.samplerate),
+      .rate = num(info.samplerate),
       .interleaved = interleaved,
       .channels = info.channels,
       .samples = info.frames,
   };
-  smp_t *buffer = f->buffer;
+  num_t *buffer = f->buffer;
   if (!interleaved)
     buffer = malloc(f->channels * f->samples * sizeof *buffer);
 #ifdef DSP_SAMPLE_FLOAT
@@ -69,7 +69,7 @@ dsp_file_t *dsp_file_read(const char *name, bool interleaved) {
 }
 int dsp_file_write(dsp_file_t *f, const char *name) {
   SF_INFO info = {
-      .samplerate = smp_int(f->rate),
+      .samplerate = num_int(f->rate),
       .channels = f->channels,
       .frames = f->samples,
       .format = SF_FORMAT_WAV | SF_FORMAT_PCM_16,
@@ -77,7 +77,7 @@ int dsp_file_write(dsp_file_t *f, const char *name) {
   SNDFILE *file = sf_open(name, SFM_WRITE, &info);
   if (!file)
     return 1;
-  smp_t *buffer = f->buffer;
+  num_t *buffer = f->buffer;
   if (!f->interleaved) {
     buffer = malloc(f->channels * f->samples * sizeof *buffer);
     for (size_t i = 0; i < f->samples; i++)
