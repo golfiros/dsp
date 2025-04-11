@@ -10,14 +10,17 @@
 void tests_base(void) {
   // TODO: should probably test the math operations here
 }
+// testing for linear functions derived from "Testing Multivariate Linear
+// Functions: Overcoming the Generator Bottleneck" by F. Ergün
+// these tests fail with probability of at least 1 - delta
+// when the implementation is wrong on a fraction of at least epsilon of
+// inputs
+
+// here we take epslion = 10% and the minimum corresponding delta
+static const unsigned int
+    m = 20, // log(2 / delta) >= log(6 / delta) * (1 - eps / 2) + 1 / sqrt(2)
+    l = 4;  // log2(1 / eps)
 void tests_fft(void) {
-  // derived from "Testing Multivariate Linear Functions: Overcoming the
-  // Generator Bottleneck" by F. Ergün
-  // these tests fail with probability of at least 1 - delta when the
-  // implementation is wrong at on a fraction of at least epsilon of inputs
-  unsigned int // here we take epslion = 10% and the minimum corresponding delta
-      m = 20,  // log(2 / delta) >= log(6 / delta) * (1 - eps / 2) + 1 / sqrt(2)
-      l = 4;   // log2(1 / eps)
   cpx_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   cpx_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing forward FFTs\n");
@@ -217,8 +220,6 @@ void tests_fft(void) {
   }
 }
 void tests_rfft(void) {
-  // same testing methodology as above
-  unsigned int m = 20, l = 4;
   num_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   cpx_t X[BUF_SIZE / 2], Y[BUF_SIZE / 2], Z[BUF_SIZE / 2], W[BUF_SIZE / 2];
   printf("Testing forward Real FFTs\n");
@@ -418,14 +419,7 @@ void tests_rfft(void) {
   }
 }
 void tests_filter(void) {
-  // again the same testing methodology
-  unsigned int m = 20, l = 4;
-#ifdef DSP_SAMPLE_FLOAT
-  float e = 5e-5f;
-#endif
-#ifdef DSP_SAMPLE_DOUBLE
-  double e = 5e-15;
-#endif
+  num_t e = num_eps(num(BUF_SIZE >> 4));
   num_t x[BUF_SIZE], y[BUF_SIZE], z[BUF_SIZE], w[BUF_SIZE];
   num_t X[BUF_SIZE], Y[BUF_SIZE], Z[BUF_SIZE], W[BUF_SIZE];
   printf("Testing linearity...\n");

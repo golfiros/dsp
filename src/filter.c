@@ -1,8 +1,5 @@
 #include <dsp/filter.h>
 
-struct biquad {
-  num_t a[2], b[3];
-};
 struct dsp_filter {
   size_t n, c;
   num_t *x;

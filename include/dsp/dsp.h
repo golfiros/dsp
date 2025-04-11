@@ -25,6 +25,8 @@ static inline int num_cmp(const void *x, const void *y) {
   return 0;
 }
 static inline num_t num_round(num_t x) { return roundf(x); }
+static inline num_t num_floor(num_t x) { return floorf(x); }
+static inline num_t num_ceil(num_t x) { return ceilf(x); }
 static inline intmax_t num_int(num_t x) { return llroundf(x); }
 static inline num_t num_clip(num_t x, num_t a, num_t b) {
   return fmaxf(fminf(x, b), a);
@@ -69,6 +71,8 @@ static inline int num_cmp(const void *x, const void *y) {
   return 0;
 }
 static inline num_t num_round(num_t x) { return round(x); }
+static inline num_t num_floor(num_t x) { return floor(x); }
+static inline num_t num_ceil(num_t x) { return ceil(x); }
 static inline intmax_t num_int(num_t x) { return llround(x); }
 static inline num_t num_clip(num_t x, num_t a, num_t b) {
   return fmax(fmin(x, b), a);
@@ -122,4 +126,8 @@ static inline cpx_t cpx_mul(cpx_t a, cpx_t b) {
   return cpx(num_fma(a.x, b.x, num_neg(num_mul(a.y, b.y))),
              num_fma(a.x, b.y, num_mul(a.y, b.x)));
 }
+static inline num_t cpx_mag(cpx_t a) {
+  return num_sqrt(cpx_mul(a, cpx_conj(a)).x);
+}
+static inline num_t cpx_arg(cpx_t a) { return num_atan2(a.y, a.x); }
 #endif // !__DSP_DSP_H__
