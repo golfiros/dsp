@@ -18,8 +18,11 @@ enum dsp_filter_type {
   DSP_FILTER_HP,    // H(s) = s2    / (s2 + s / Q + 1)
   DSP_FILTER_TYPES,
 };
-void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
-                     num_t f0, num_t Q);
+// H(s) ~ (a2 * s2 + a1 * s / Q + a0) / (s2 + s / Q + 1)
+// OR
+// H(s) ~ (a1 * s + a0) / (s2 + s / Q + 1)
+void dsp_filter_init(dsp_filter_t *filter, size_t index, bool first_order,
+                     num_t f0, num_t Q, const num_t *a);
 
 void dsp_filter_smp(dsp_filter_t *filter, const num_t *x, num_t *y);
 

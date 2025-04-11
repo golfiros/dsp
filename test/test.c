@@ -432,10 +432,11 @@ void tests_filter(void) {
     size_t n = rand() % 4 + 1;
     dsp_filter_t *filter = dsp_filter_new(n, 1);
     for (size_t i = 0; i < n; i++) {
-      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      bool ord = rand() % 2;
       num_t f0 = num_rand(num(0.125), num(0.375));
       num_t Q = num_rand(num(0.5), num(1));
-      dsp_filter_init(filter, i, t, f0, Q);
+      num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
+      dsp_filter_init(filter, i, ord, f0, Q, a);
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
@@ -454,15 +455,14 @@ void tests_filter(void) {
   }
   printf("Testing poles...\n");
   for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
-    enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+    bool ord = rand() % 2;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
+    num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
     dsp_filter_t *filter = dsp_filter_new(1, 1);
-    dsp_filter_init(filter, 0, t, f0, Q);
+    dsp_filter_init(filter, 0, ord, f0, Q, a);
     num_t w0 = num_mul(DSP_2PI, f0), cc = num_cos(w0), ss = num_sin(w0);
-    switch (t) {
-    case DSP_FILTER_LP_FO:
-    case DSP_FILTER_HP_FO: {
+    if (ord) {
       num_t r = num_div(num_add(num_add(1, cc), num_neg(ss)),
                         num_add(num_add(1, cc), ss));
       r = num_log(r);
@@ -484,10 +484,7 @@ void tests_filter(void) {
         num_t eps = num_abs(num_add(y, num_neg(num_add(X[i], Y[i]))));
         assert(num_cmp(&eps, &e) <= 0);
       }
-    } break;
-    case DSP_FILTER_LP:
-    case DSP_FILTER_BP:
-    case DSP_FILTER_HP: {
+    } else {
       num_t t = num_div(num(0.25), num_mul(Q, Q));
       t = num_sqrt(num_add(num(1), num_neg(t)));
       t = num_atan2(num_mul(t, ss), cc);
@@ -517,18 +514,17 @@ void tests_filter(void) {
         num_t eps = num_abs(num_add(y, num_neg(num_add(X[i], Y[i]))));
         assert(num_cmp(&eps, &e) <= 0);
       }
-    } break;
-    case DSP_FILTER_TYPES:
     }
     dsp_filter_del(filter);
   }
   printf("Testing DC response...\n");
   for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
-    enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+    bool ord = rand() % 2;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
+    num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
     dsp_filter_t *filter = dsp_filter_new(1, 1);
-    dsp_filter_init(filter, 0, t, f0, Q);
+    dsp_filter_init(filter, 0, ord, f0, Q, a);
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = num_gauss();
       y[i] = num_add(num(1), num_neg(x[i]));
@@ -540,30 +536,18 @@ void tests_filter(void) {
     for (size_t i = 0; i < BUF_SIZE; i++)
       dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_del(filter);
-    switch (t) {
-    case DSP_FILTER_LP_FO:
-    case DSP_FILTER_LP: {
-      num_t y = num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]);
-      num_t eps = num_abs(num_add(y, num(-1)));
-      assert(num_cmp(&eps, &e) <= 0);
-    } break;
-    case DSP_FILTER_HP_FO:
-    case DSP_FILTER_BP:
-    case DSP_FILTER_HP: {
-      num_t y = num_neg(num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]));
-      num_t eps = num_abs(y);
-      assert(num_cmp(&eps, &e) <= 0);
-    } break;
-    case DSP_FILTER_TYPES:
-    }
+    num_t y = num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]);
+    num_t eps = num_abs(num_add(y, num_neg(a[0])));
+    assert(num_cmp(&eps, &e) <= 0);
   }
   printf("Testing Nyquist response...\n");
   for (unsigned int _ = 0; _ < DSP_FILTER_TYPES * l; _++) {
-    enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+    bool ord = rand() % 2;
     num_t f0 = num_rand(num(0.125), num(0.375));
     num_t Q = num_rand(num(0.5), num(1));
+    num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
     dsp_filter_t *filter = dsp_filter_new(1, 1);
-    dsp_filter_init(filter, 0, t, f0, Q);
+    dsp_filter_init(filter, 0, ord, f0, Q, a);
     for (size_t i = 0; i < BUF_SIZE; i++) {
       x[i] = num_gauss();
       y[i] = num_add(num(i % 2 ? -1 : 1), num_neg(x[i]));
@@ -575,22 +559,9 @@ void tests_filter(void) {
     for (size_t i = 0; i < BUF_SIZE; i++)
       dsp_filter_smp(filter, y + i, Y + i);
     dsp_filter_del(filter);
-    switch (t) {
-    case DSP_FILTER_LP_FO:
-    case DSP_FILTER_LP:
-    case DSP_FILTER_BP: {
-      num_t y = num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]);
-      num_t eps = num_abs(y);
-      assert(num_cmp(&eps, &e) <= 0);
-    } break;
-    case DSP_FILTER_HP_FO:
-    case DSP_FILTER_HP: {
-      num_t y = num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]);
-      num_t eps = num_abs(num_add(y, num(1)));
-      assert(num_cmp(&eps, &e) <= 0);
-    } break;
-    case DSP_FILTER_TYPES:
-    }
+    num_t y = num_add(X[BUF_SIZE - 1], Y[BUF_SIZE - 1]);
+    num_t eps = num_abs(num_add(y, a[ord ? 1 : 2]));
+    assert(num_cmp(&eps, &e) <= 0);
   }
   printf("Testing time invariance...\n");
   for (unsigned int _ = 0; _ < m; _++) {
@@ -602,10 +573,11 @@ void tests_filter(void) {
     size_t n = rand() % 4 + 1;
     dsp_filter_t *filter = dsp_filter_new(n, 1);
     for (size_t i = 0; i < n; i++) {
-      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      bool ord = rand() % 2;
       num_t f0 = num_rand(num(0.125), num(0.375));
       num_t Q = num_rand(num(0.5), num(1));
-      dsp_filter_init(filter, i, t, f0, Q);
+      num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
+      dsp_filter_init(filter, i, ord, f0, Q, a);
     }
     dsp_filter_reset(filter);
     for (size_t i = 0; i < BUF_SIZE; i++)
@@ -674,18 +646,20 @@ void tests_filter(void) {
     dsp_filter_t *filter2 = dsp_filter_new(n2, 1);
     dsp_filter_t *filter3 = dsp_filter_new(n1 + n2, 1);
     for (size_t i = 0; i < n1; i++) {
-      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      bool ord = rand() % 2;
       num_t f0 = num_rand(num(0.125), num(0.375));
       num_t Q = num_rand(num(0.5), num(1));
-      dsp_filter_init(filter1, i, t, f0, Q);
-      dsp_filter_init(filter3, i, t, f0, Q);
+      num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
+      dsp_filter_init(filter1, i, ord, f0, Q, a);
+      dsp_filter_init(filter3, i, ord, f0, Q, a);
     }
     for (size_t i = 0; i < n2; i++) {
-      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      bool ord = rand() % 2;
       num_t f0 = num_rand(num(0.125), num(0.375));
       num_t Q = num_rand(num(0.5), num(1));
-      dsp_filter_init(filter2, i, t, f0, Q);
-      dsp_filter_init(filter3, n1 + i, t, f0, Q);
+      num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
+      dsp_filter_init(filter2, i, ord, f0, Q, a);
+      dsp_filter_init(filter3, n1 + i, ord, f0, Q, a);
     }
     dsp_filter_reset(filter1);
     dsp_filter_reset(filter2);
@@ -716,11 +690,12 @@ void tests_filter(void) {
     size_t n = rand() % 4 + 1;
     dsp_filter_t *f1 = dsp_filter_new(n, 1), *fc = dsp_filter_new(n, c);
     for (size_t i = 0; i < n; i++) {
-      enum dsp_filter_type t = rand() % DSP_FILTER_TYPES;
+      bool ord = rand() % 2;
       num_t f0 = num_rand(num(0.125), num(0.375));
       num_t Q = num_rand(num(0.5), num(1));
-      dsp_filter_init(f1, i, t, f0, Q);
-      dsp_filter_init(fc, i, t, f0, Q);
+      num_t a[3] = {num_gauss(), num_gauss(), num_gauss()};
+      dsp_filter_init(f1, i, ord, f0, Q, a);
+      dsp_filter_init(fc, i, ord, f0, Q, a);
     }
     dsp_filter_reset(f1);
     for (size_t i = 0; i < BUF_SIZE / c; i++)

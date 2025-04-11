@@ -29,57 +29,42 @@ void dsp_filter_reset(dsp_filter_t *filter) {
   for (size_t i = 0; i < 2 * filter->c * (filter->n + 1); i++)
     filter->x[i] = 0;
 }
-void dsp_filter_init(dsp_filter_t *filter, size_t i, enum dsp_filter_type t,
-                     num_t f0, num_t Q) {
+void dsp_filter_init(dsp_filter_t *filter, size_t index, bool first_order,
+                     num_t f0, num_t Q, const num_t *a) {
   // based on Robert Bristow-Johnson's "Audio EQ Cookbook"
-  num_t w0 = num_mul(DSP_2PI, f0), cc = num_cos(w0), ss = num_sin(w0),
-        aa = num_div(ss, num_mul(num(2), Q));
+  num_t w0 = num_mul(DSP_2PI, f0), cc = num_cos(w0), ss = num_sin(w0);
   num_t a0 = num(1), a1 = DSP_ZERO, a2 = DSP_ZERO, b0 = DSP_ZERO, b1 = DSP_ZERO,
         b2 = DSP_ZERO;
-  switch (t) {
-  case DSP_FILTER_LP_FO:
-    a0 = num_add(ss, num_add(num(1), cc));
-    a1 = num_add(ss, num_neg(num_add(num(1), cc)));
-    b0 = ss;
-    b1 = ss;
-    break;
-  case DSP_FILTER_HP_FO:
-    a0 = num_add(ss, num_add(num(1), cc));
-    a1 = num_add(ss, num_neg(num_add(num(1), cc)));
-    b0 = num_add(num(1), cc);
-    b1 = num_neg(b0);
-    break;
-  case DSP_FILTER_LP:
+  if (first_order) {
+    num_t x = num_add(num(1), cc);
+    a0 = num_add(ss, x);
+    a1 = num_add(ss, num_neg(x));
+    b0 = b1 = num_mul(a[0], ss);
+    b0 = num_fma(a[1], x, b0);
+    b1 = num_fma(a[1], num_neg(x), b1);
+  } else {
+    num_t aa = num_div(ss, num_mul(num(2), Q));
     a0 = num_add(num(1), aa);
     a1 = num_neg(num_mul(num(2), cc));
     a2 = num_add(num(1), num_neg(aa));
-    b1 = num_add(num(1), num_neg(cc));
-    b0 = num_mul(num(0.5), b1);
-    b2 = b0;
-    break;
-  case DSP_FILTER_BP:
-    a0 = num_add(num(1), aa);
-    a1 = num_neg(num_mul(num(2), cc));
-    a2 = num_add(num(1), num_neg(aa));
-    b1 = DSP_ZERO;
-    b0 = aa;
-    b2 = num_neg(b0);
-    break;
-  case DSP_FILTER_HP:
-    a0 = num_add(num(1), aa);
-    a1 = num_neg(num_mul(num(2), cc));
-    a2 = num_add(num(1), num_neg(aa));
-    b1 = num_neg(num_add(num(1), cc));
-    b0 = num_mul(num(0.5), num_neg(b1));
-    b2 = b0;
-    break;
-  case DSP_FILTER_TYPES:
+    num_t x = num_add(num(1), num_neg(cc));
+    b1 = num_mul(a[0], x);
+    x = num_mul(x, num(0.5));
+    b0 = num_mul(a[0], x);
+    b2 = num_mul(a[0], x);
+    b0 = num_fma(a[1], aa, b0);
+    b2 = num_fma(a[1], num_neg(aa), b2);
+    x = num_add(num(1), cc);
+    b1 = num_fma(a[2], num_neg(x), b1);
+    x = num_mul(num(0.5), x);
+    b0 = num_fma(a[2], x, b0);
+    b2 = num_fma(a[2], x, b2);
   }
-  filter->f[i].a[0] = num_div(a1, a0);
-  filter->f[i].a[1] = num_div(a2, a0);
-  filter->f[i].b[0] = num_div(b0, a0);
-  filter->f[i].b[1] = num_div(b1, a0);
-  filter->f[i].b[2] = num_div(b2, a0);
+  filter->f[index].a[0] = num_div(a1, a0);
+  filter->f[index].a[1] = num_div(a2, a0);
+  filter->f[index].b[0] = num_div(b0, a0);
+  filter->f[index].b[1] = num_div(b1, a0);
+  filter->f[index].b[2] = num_div(b2, a0);
 }
 void dsp_filter_smp(dsp_filter_t *filter, const num_t *x, num_t *y) {
   for (size_t j = 0; j < filter->c; j++) {
